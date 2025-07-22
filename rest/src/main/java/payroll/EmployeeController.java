@@ -2,7 +2,9 @@ package payroll;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.hateoas.CollectionModel;
@@ -39,10 +41,19 @@ class EmployeeController {
 
 	@PostMapping("/employees")
 	Employee newEmployee(@RequestBody Employee newEmployee) {
+		if (newEmployee.getId() != null) {
+			throw new IllegalArgumentException("New employee should not have an ID");
+		}
+		if (newEmployee.getName() == null || newEmployee.getRole() == null)
+			throw new IllegalArgumentException("New employee must have a name and role");
+		if (newEmployee.getName().isBlank() || newEmployee.getRole().isBlank())
+			throw new IllegalArgumentException("New employee name and role must not be blank");
+		if (repository.findByName(newEmployee.getName()).isPresent())
+			throw new IllegalArgumentException("Employee with name '" + newEmployee.getName() + "' already exists");
 		return repository.save(newEmployee);
 	}
 
-	// Single item
+	// Single itemxxz
 
 	// tag::get-single-item[]
 	@GetMapping("/employees/{id}")
@@ -72,7 +83,15 @@ class EmployeeController {
 	}
 
 	@DeleteMapping("/employees/{id}")
-	void deleteEmployee(@PathVariable Long id) {
+	Map<String, String> deleteEmployee(@PathVariable Long id) {
+		if (!repository.existsById(id)) {
+			throw new EmployeeNotFoundException(id);
+		}
+
 		repository.deleteById(id);
+
+		Map<String, String> response = new HashMap<>();
+		response.put("message", "Employee with id " + id + " successfully deleted");
+		return response;
 	}
 }

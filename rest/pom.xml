@@ -12,6 +12,7 @@
 
 	<artifactId>rest</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
 
 	<dependencies>
 
@@ -52,7 +53,7 @@
                 <configuration>
                     <source>24</source>
                     <target>24</target>
-                    <compilerArgs>--enable-preview</compilerArgs>
+<!--                    <compilerArgs>&#45;&#45;enable-preview</compilerArgs>-->
                 </configuration>
             </plugin>
         </plugins>
