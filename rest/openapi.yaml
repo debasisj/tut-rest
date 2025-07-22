@@ -1,0 +1,350 @@
+openapi: 3.0.3
+info:
+  title: Employee Management API
+  description: A REST API for managing employees with HATEOAS support
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+servers:
+  - url: http://localhost:8080
+    description: Development server
+paths:
+  /employees:
+    get:
+      summary: Get all employees
+      description: Retrieve a list of all employees with HATEOAS links
+      operationId: getAllEmployees
+      responses:
+        '200':
+          description: Successful response with list of employees
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeCollectionModel'
+              example:
+                _embedded:
+                  employeeList:
+                    - id: 1
+                      name: "John Doe"
+                      role: "Developer"
+                      _links:
+                        self:
+                          href: "http://localhost:8080/employees/1"
+                        employees:
+                          href: "http://localhost:8080/employees"
+                    - id: 2
+                      name: "Jane Smith"
+                      role: "Manager"
+                      _links:
+                        self:
+                          href: "http://localhost:8080/employees/2"
+                        employees:
+                          href: "http://localhost:8080/employees"
+                _links:
+                  self:
+                    href: "http://localhost:8080/employees"
+    post:
+      summary: Create a new employee
+      description: Create a new employee with name and role
+      operationId: createEmployee
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequest'
+            examples:
+              developer:
+                summary: Create a developer
+                value:
+                  name: "John Doe"
+                  role: "Developer"
+              manager:
+                summary: Create a manager
+                value:
+                  name: "Jane Smith"
+                  role: "Manager"
+      responses:
+        '200':
+          description: Employee created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+              example:
+                id: 1
+                name: "John Doe"
+                role: "Developer"
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missing_fields:
+                  summary: Missing required fields
+                  value:
+                    error: "Invalid request"
+                    message: "New employee must have a name and role"
+                blank_fields:
+                  summary: Blank fields
+                  value:
+                    error: "Invalid request"
+                    message: "New employee name and role must not be blank"
+                invalid_role:
+                  summary: Invalid role
+                  value:
+                    error: "Invalid request"
+                    message: "Invalid role: 'InvalidRole'. Valid roles are: Developer, Manager, Designer, QA Engineer, DevOps, Product Manager"
+                duplicate_name:
+                  summary: Duplicate employee name
+                  value:
+                    error: "Invalid request"
+                    message: "Employee with name 'John Doe' already exists"
+                has_id:
+                  summary: ID provided for new employee
+                  value:
+                    error: "Invalid request"
+                    message: "New employee should not have an ID"
+
+  /employees/{id}:
+    get:
+      summary: Get employee by ID
+      description: Retrieve a specific employee by their ID with HATEOAS links
+      operationId: getEmployeeById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the employee to retrieve
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: Employee found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeEntityModel'
+              example:
+                id: 1
+                name: "John Doe"
+                role: "Developer"
+                _links:
+                  self:
+                    href: "http://localhost:8080/employees/1"
+                  employees:
+                    href: "http://localhost:8080/employees"
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Employee not found"
+                message: "Could not find employee 999"
+
+    put:
+      summary: Update employee
+      description: Update an existing employee or create a new one if it doesn't exist
+      operationId: updateEmployee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the employee to update
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequest'
+            example:
+              name: "John Updated"
+              role: "Manager"
+      responses:
+        '200':
+          description: Employee updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+              example:
+                id: 1
+                name: "John Updated"
+                role: "Manager"
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete employee
+      description: Delete an employee by their ID
+      operationId: deleteEmployee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the employee to delete
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: Employee deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+              example:
+                message: "Employee with id 1 successfully deleted"
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Employee not found"
+                message: "Could not find employee 999"
+
+components:
+  schemas:
+    Employee:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique identifier for the employee
+          example: 1
+        name:
+          type: string
+          description: Full name of the employee
+          example: "John Doe"
+        role:
+          type: string
+          description: Job role of the employee
+          enum:
+            - "Developer"
+            - "Manager"
+            - "Designer"
+            - "QA Engineer"
+            - "DevOps"
+            - "Product Manager"
+          example: "Developer"
+      required:
+        - id
+        - name
+        - role
+
+    EmployeeRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Full name of the employee
+          minLength: 1
+          example: "John Doe"
+        role:
+          type: string
+          description: Job role of the employee
+          enum:
+            - "Developer"
+            - "Manager"
+            - "Designer"
+            - "QA Engineer"
+            - "DevOps"
+            - "Product Manager"
+          example: "Developer"
+      required:
+        - name
+        - role
+
+    EmployeeEntityModel:
+      allOf:
+        - $ref: '#/components/schemas/Employee'
+        - type: object
+          properties:
+            _links:
+              $ref: '#/components/schemas/HateoasLinks'
+
+    EmployeeCollectionModel:
+      type: object
+      properties:
+        _embedded:
+          type: object
+          properties:
+            employeeList:
+              type: array
+              items:
+                $ref: '#/components/schemas/EmployeeEntityModel'
+        _links:
+          $ref: '#/components/schemas/HateoasLinks'
+
+    HateoasLinks:
+      type: object
+      properties:
+        self:
+          $ref: '#/components/schemas/Link'
+        employees:
+          $ref: '#/components/schemas/Link'
+      additionalProperties:
+        $ref: '#/components/schemas/Link'
+
+    Link:
+      type: object
+      properties:
+        href:
+          type: string
+          format: uri
+          example: "http://localhost:8080/employees/1"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error category
+          example: "Invalid request"
+        message:
+          type: string
+          description: Detailed error message
+          example: "New employee must have a name and role"
+      required:
+        - error
+        - message
+
+    DeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Confirmation message
+          example: "Employee with id 1 successfully deleted"
+      required:
+        - message
+
+  headers:
+    Content-Type:
+      description: The content type of the response
+      schema:
+        type: string
+        example: "application/json"
+
+tags:
+  - name: employees
+    description: Employee management operations
