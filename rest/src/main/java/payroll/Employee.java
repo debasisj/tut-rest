@@ -2,7 +2,10 @@ package payroll;
 
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 
@@ -11,14 +14,16 @@ class Employee {
 
 	private @Id @GeneratedValue Long id;
 	private String name;
-	private String role;
 
-	Employee() {}
+	@Enumerated(EnumType.STRING)
+	private Role role;
+
+	Employee() {
+	}
 
 	Employee(String name, String role) {
-
 		this.name = name;
-		this.role = role;
+		this.role = Role.fromString(role);
 	}
 
 	public Long getId() {
@@ -30,6 +35,11 @@ class Employee {
 	}
 
 	public String getRole() {
+		return this.role != null ? this.role.getDisplayName() : null;
+	}
+
+	@JsonIgnore
+	public Role getRoleEnum() {
 		return this.role;
 	}
 
@@ -42,7 +52,7 @@ class Employee {
 	}
 
 	public void setRole(String role) {
-		this.role = role;
+		this.role = Role.fromString(role);
 	}
 
 	@Override
@@ -64,6 +74,7 @@ class Employee {
 
 	@Override
 	public String toString() {
-		return "Employee{" + "id=" + this.id + ", name='" + this.name + '\'' + ", role='" + this.role + '\'' + '}';
+		return "Employee{" + "id=" + this.id + ", name='" + this.name + '\'' + ", role='"
+				+ (this.role != null ? this.role.getDisplayName() : null) + '\'' + '}';
 	}
 }

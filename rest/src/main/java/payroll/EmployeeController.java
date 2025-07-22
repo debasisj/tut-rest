@@ -87,9 +87,7 @@ class EmployeeController {
 		if (!repository.existsById(id)) {
 			throw new EmployeeNotFoundException(id);
 		}
-
 		repository.deleteById(id);
-
 		Map<String, String> response = new HashMap<>();
 		response.put("message", "Employee with id " + id + " successfully deleted");
 		return response;

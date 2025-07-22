@@ -19,13 +19,4 @@ class EmployeeNotFoundAdvice {
 		error.put("message", ex.getMessage());
 		return error;
 	}
-
-	@ExceptionHandler(IllegalArgumentException.class)
-	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	Map<String, String> illegalArgumentHandler(IllegalArgumentException ex) {
-		Map<String, String> error = new HashMap<>();
-		error.put("error", "Invalid request");
-		error.put("message", ex.getMessage());
-		return error;
-	}
 }
